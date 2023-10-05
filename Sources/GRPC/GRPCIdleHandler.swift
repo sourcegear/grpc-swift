@@ -37,6 +37,9 @@ internal final class GRPCIdleHandler: ChannelInboundHandler {
   /// The mode we're operating in.
   private let mode: Mode
 
+  /// A logger.
+  internal var logger: Logger
+
   private var context: ChannelHandlerContext?
 
   /// The mode of operation: the client tracks additional connection state in the connection
@@ -68,6 +71,7 @@ internal final class GRPCIdleHandler: ChannelInboundHandler {
     self.mode = .client(connectionManager, multiplexer)
     self.idleTimeout = idleTimeout
     self.stateMachine = .init(role: .client, logger: logger)
+    self.logger = logger
     self.pingHandler = PingHandler(
       pingCode: 5,
       interval: configuration.interval,
@@ -86,6 +90,7 @@ internal final class GRPCIdleHandler: ChannelInboundHandler {
     self.mode = .server
     self.stateMachine = .init(role: .server, logger: logger)
     self.idleTimeout = idleTimeout
+    self.logger = logger
     self.pingHandler = PingHandler(
       pingCode: 10,
       interval: configuration.interval,
@@ -213,6 +218,7 @@ internal final class GRPCIdleHandler: ChannelInboundHandler {
       initialDelay: delay,
       delay: delay
     ) { _ in
+      self.logger.trace("ping")
       let action = self.pingHandler.pingFired()
       if case .none = action { return }
       self.handlePingAction(action)
