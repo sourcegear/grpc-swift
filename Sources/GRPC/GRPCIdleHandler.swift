@@ -194,6 +194,7 @@ internal final class GRPCIdleHandler: ChannelInboundHandler {
       ()
 
     case .cancelScheduledTimeout:
+      self.logger.trace("pong, cancelScheduledTimeout")
       self.scheduledClose?.cancel()
       self.scheduledClose = nil
 
@@ -231,6 +232,7 @@ internal final class GRPCIdleHandler: ChannelInboundHandler {
 
   private func scheduleClose(in timeout: TimeAmount) {
     self.scheduledClose = self.context?.eventLoop.scheduleTask(in: timeout) {
+      self.logger.trace("scheduledClose")
       self.perform(operations: self.stateMachine.shutdownNow())
     }
   }
